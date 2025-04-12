@@ -1,0 +1,62 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{titling}
+
+\title{Jugador Inteligente de Hex: Implementación y Heurística}
+\author{José Ernesto Morales Lazo}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+Este informe describe la implementación de un jugador inteligente para el juego de Hex, basado en el algoritmo Minimax con poda alfa-beta para optimizar la eficiencia computacional. Se detalla una heurística diseñada para evaluar estados del tablero, enfocada en maximizar la conectividad del jugador mientras considera el bloqueo estratégico del oponente.
+
+\section{Implementación del Jugador Inteligente}
+La implementación del jugador de Hex priorizó la eficiencia mediante las siguientes técnicas:
+
+\begin{enumerate}
+    \item \textbf{Poda Alfa-Beta}: Reduce el espacio de búsqueda en el algoritmo Minimax al descartar ramas del árbol de juego que no afectan la decisión final, optimizando el tiempo de cómputo.
+    \item \textbf{Heurística Estratégica}: Evalúa estados no terminales para guiar la selección de movimientos, maximizando la conectividad del jugador y considerando la necesidad de bloquear las rutas del oponente.
+\end{enumerate}
+
+\section{Explicación de la Heurística}
+La heurística implementada en la función \texttt{evaluate\_position} combina tres componentes para estimar la calidad de un estado del tablero:
+
+\subsection{Costo Estimado del Jugador}
+Este componente estima el número mínimo de movimientos necesarios para que el jugador conecte sus lados designados (izquierda-derecha para el jugador 1, arriba-abajo para el jugador 2). Se calcula mediante:
+
+\begin{itemize}
+    \item \textbf{Identificación de Componentes Conexas}: Utiliza las funciones \texttt{get\_connected\_components} y \texttt{flood\_fill} para detectar grupos de celdas conectadas del jugador.
+    \item \textbf{Cálculo del Camino Más Corto}: Emplea búsqueda en anchura (BFS) para encontrar la distancia mínima desde componentes que tocan el lado inicial hasta el lado final.
+    \item \textbf{Caso Especial}: Si no hay componentes que toquen el lado inicial, se estima el camino directamente desde el lado inicial.
+\end{itemize}
+
+Este enfoque guía al algoritmo hacia movimientos que construyan o extiendan caminos hacia el objetivo de conexión.
+
+\subsection{Costo Estimado del Oponente}
+Similar al costo del jugador, este componente estima los movimientos necesarios para que el oponente conecte sus lados, utilizando el mismo procedimiento basado en componentes conexas y BFS. Se pondera por 0.8 para priorizar ligeramente el progreso del jugador sobre el bloqueo del oponente. Este factor es crucial, ya que una conexión del oponente resulta en una derrota inmediata.
+
+\subsection{Ventaja de Control del Centro}
+Mide el control del jugador sobre la región central del tablero, definida como un círculo de radio $\lfloor \text{tamaño del tablero} / 3 \rfloor$ alrededor del centro. Se calcula la diferencia entre las piezas del jugador y del oponente en esta región, normalizada por el total de celdas y escalada por 0.01 para limitar su influencia. Controlar el centro proporciona flexibilidad estratégica, ya que facilita la construcción de múltiples caminos.
+
+\subsection{Fórmula de la Heurística}
+La puntuación heurística se define como:
+\[
+\text{Puntuación} = \text{costo estimado del jugador} - 0.8 \cdot \text{costo estimado del oponente} + 0.01 \cdot \text{ventaja de control del centro}
+\]
+Donde:
+\begin{itemize}
+    \item Un \emph{costo estimado del jugador} menor indica que el jugador está más cerca de conectar sus lados, aumentando la puntuación.
+    \item Un \emph{costo estimado del oponente} mayor implica que el oponente está más lejos de ganar, incrementando la puntuación.
+    \item Una \emph{ventaja de control del centro} positiva favorece posiciones con mayor control central, ofreciendo flexibilidad estratégica.
+\end{itemize}
+
+\end{document}
